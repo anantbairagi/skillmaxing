@@ -4,10 +4,11 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { Figure } from "@/components/Marks";
+import { LessonVideo } from "@/components/Player";
 import { allLessons, courseById, findLesson, lessonKey, neighbors, papers, posts, resources, type Course } from "@/lib/catalog";
 import { batchTradeoff, cacheLatency, concurrencyThroughput, labs, latencyBudget, loadBalance, tailFanout, type LabSpec } from "@/lib/labs";
-import { lessonNote } from "@/lib/notes";
-import { hasFullAccess, useStore } from "@/lib/store";
+import { formatClock, lessonDoc, videoDuration } from "@/lib/notes";
+import { useStore } from "@/lib/store";
 
 export function CourseOverview({ courseId }: { courseId: Course["id"] }) {
   const course = courseById(courseId);
@@ -55,7 +56,7 @@ export function CourseOverview({ courseId }: { courseId: Course["id"] }) {
             </section>
           );
         })}
-        <p className="muted">The free lessons are complete lessons, not teasers. A paid plan on this build unlocks the rest locally. No card is charged.</p>
+        <p className="muted">Free lessons on the original course are complete lessons. Every lesson in this copy is open to read and watch. Payments are not part of this copy.</p>
         <Link href={`${course.path}/resources/`}>Resources</Link>
       </div>
     </div>
@@ -71,92 +72,110 @@ export function LessonView({ courseId }: { courseId: Course["id"] }) {
   const course = courseById(courseId);
   const lesson = findLesson(courseId, params.slug);
   const store = useStore();
-  const [tab, setTab] = useState<"Watch" | "Read" | "Build">("Read");
-  const [choice, setChoice] = useState<number | null>(null);
   const [listOpen, setListOpen] = useState(false);
+  const [openCheck, setOpenCheck] = useState<number | null>(null);
   if (!lesson) return <p>That lesson is not in this catalog.</p>;
-  const note = lessonNote(course.name, lesson.module, lesson);
-  const locked = !lesson.free && !hasFullAccess(store.profile);
+  const doc = lessonDoc(course.name, lesson.module, lesson);
+  const moduleLessons = course.modules.find((mod) => mod.title === lesson.module)?.lessons ?? [];
+  const place = moduleLessons.findIndex((item) => item.slug === lesson.slug) + 1;
   const key = lessonKey(courseId, lesson.slug);
-  const { prev, next } = neighbors(courseId, lesson.slug);
+  const { next } = neighbors(courseId, lesson.slug);
   const understood = store.profile?.understood.includes(key);
+  const saved = store.profile?.saved.includes(key);
+  const stamp = `${store.profile?.email ?? "guest"} · ${new Date().toISOString().slice(0, 10)}`;
 
   return (
-    <div className="course-shell">
-      <button className="btn ghost mobile-only" type="button" onClick={() => setListOpen((open) => !open)}>Open the lesson list</button>
-      <aside className="sidebar" data-closed={listOpen ? "false" : "true"}>
-        <p className="kicker">The path</p>
-        {course.modules.map((mod) => (
-          <div key={mod.title}>
-            <strong>{mod.title}</strong>
-            {mod.lessons.map((item) => (
-              <Link key={item.slug} className="side-link" data-on={item.slug === lesson.slug} href={`${course.path}/archive/${item.slug}/`}>
-                <span>{item.code} {item.title}</span>
-                {!item.free && <span className="pro">Pro</span>}
-              </Link>
+    <div className="lesson-page">
+      <button className="btn ghost lessons-toggle" type="button" onClick={() => setListOpen(true)}>Lessons</button>
+      {listOpen && (
+        <div className="lesson-drawer" onClick={() => setListOpen(false)}>
+          <aside onClick={(event) => event.stopPropagation()}>
+            <div className="row" style={{ justifyContent: "space-between" }}>
+              <strong>{course.name}</strong>
+              <button className="btn ghost" type="button" onClick={() => setListOpen(false)}>Close</button>
+            </div>
+            {course.modules.map((mod) => (
+              <div key={mod.title}>
+                <p className="kicker">{mod.title}</p>
+                {mod.lessons.map((item) => (
+                  <Link key={item.slug} className="side-link" data-on={item.slug === lesson.slug} href={`${course.path}/archive/${item.slug}/`} onClick={() => setListOpen(false)}>
+                    <span>{item.code} {item.title}</span>
+                    {item.free && <span className="pro">Free</span>}
+                  </Link>
+                ))}
+              </div>
             ))}
+          </aside>
+        </div>
+      )}
+      <header className="lesson-head">
+        <nav className="crumbs">
+          <Link href={`${course.path}/overview/`}>{course.name}</Link>
+          <span>/</span>
+          <a href={`${course.path}/overview/#${cssId(lesson.module)}`}>{lesson.module}</a>
+        </nav>
+        <h1>{lesson.title}</h1>
+        <div className="facts">
+          <span className="num">{lesson.code}</span>
+          <span>Lesson {place} of {moduleLessons.length}</span>
+          <span>▶ {formatClock(videoDuration(doc))} video</span>
+          <span>{doc.readMin} min read</span>
+          {lesson.free && <span className="free-pill">Free</span>}
+        </div>
+      </header>
+      <LessonVideo title={lesson.title} scenes={doc.scenes} watermark={stamp} />
+      <article className="lesson-body prose">
+        <p className="kicker">The notes</p>
+        <p className="muted">The same idea in writing, with the figures from the video.</p>
+        <p className="kicker">In one line</p>
+        <p className="one-line">{doc.oneLine}</p>
+        {doc.sections.map((section) => (
+          <section key={section.heading}>
+            <h2>{section.heading}</h2>
+            {section.paragraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+            {section.table && (
+              <table className="table">
+                <thead>
+                  <tr>{section.table.headers.map((header) => <th key={header}>{header}</th>)}</tr>
+                </thead>
+                <tbody>
+                  {section.table.rows.map((row) => (
+                    <tr key={row.join("|")}>{row.map((cell) => <td key={cell}>{cell}</td>)}</tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+            {section.code && <pre className="code">{section.code}</pre>}
+          </section>
+        ))}
+        <h2>Try it</h2>
+        {doc.tryIt.map((line) => <p key={line}>{line}</p>)}
+        <h2>Check yourself</h2>
+        {doc.checks.map((check, index) => (
+          <div key={check.q} className="check">
+            <p>{check.q}</p>
+            <button type="button" className="btn ghost" onClick={() => setOpenCheck(openCheck === index ? null : index)}>
+              {openCheck === index ? "Hide" : "Answer"}
+            </button>
+            {openCheck === index && <p className="ok">{check.a}</p>}
           </div>
         ))}
-      </aside>
-      <article className="lesson">
-        <p className="kicker">{lesson.code} · {lesson.module}{lesson.free ? " · Free" : " · Pro"}</p>
-        <h1>{lesson.title}</h1>
-        <div className="tabs lesson-tabs">
-          {(["Watch", "Read", "Build"] as const).map((name) => (
-            <button key={name} type="button" data-on={tab === name} onClick={() => setTab(name)}>{name}</button>
-          ))}
-        </div>
-        <Figure kind={note.figure} />
-        <p className="muted">{note.caption}</p>
-        {tab === "Watch" && (
-          <div className="prose">
-            {note.watch.map((line) => <p key={line}>{line}</p>)}
-            <p className="muted">The reference lesson is a narrated video. This build plays the same beats as text beside the figure.</p>
-          </div>
-        )}
-        {tab === "Read" && (
-          <div className="prose">
-            <p>{note.paragraphs[0]}</p>
-            {locked ? (
-              <div className="lock">
-                <h3>The rest of this lesson is on a paid plan</h3>
-                <p>Free lessons are complete. This one continues for Monthly, Annual, Quarterly, or Lifetime. Checkout on this build only updates the plan in your browser.</p>
-                <Link className="btn" href="/pricing/">See pricing</Link>
-              </div>
-            ) : (
-              note.paragraphs.slice(1).map((line) => <p key={line}>{line}</p>)
-            )}
-            {!locked && note.code && <pre className="code">{note.code}</pre>}
-          </div>
-        )}
-        {tab === "Build" && (
-          <div className="prose">
-            {locked ? <p>The exercise unlocks with the rest of the lesson.</p> : (
-              <>
-                <p>{note.tryIt}</p>
-                <fieldset>
-                  <legend>{note.quiz.prompt}</legend>
-                  {note.quiz.choices.map((item, index) => (
-                    <label key={item} style={{ display: "block", margin: "6px 0" }}>
-                      <input type="radio" name="quiz" checked={choice === index} onChange={() => setChoice(index)} /> {item}
-                    </label>
-                  ))}
-                </fieldset>
-                {choice !== null && <p className={choice === note.quiz.answer ? "ok" : "error"}>{choice === note.quiz.answer ? "That is the move." : "Not that one. Make the promise explicit first."}</p>}
-              </>
-            )}
-          </div>
-        )}
-        <div className="row" style={{ marginTop: 16 }}>
+        <div className="row" style={{ marginTop: 18 }}>
           {store.profile ? (
-            <button className="btn" type="button" onClick={() => store.toggleUnderstood(key)}>{understood ? "Marked understood" : "Mark understood"}</button>
+            <>
+              <button className="btn" type="button" onClick={() => store.toggleUnderstood(key)}>{understood ? "Understood" : "Mark as understood"}</button>
+              <button className="btn ghost" type="button" onClick={() => store.toggleSaved(key)}>{saved ? "Saved" : "Save"}</button>
+            </>
           ) : (
             <Link className="btn" href="/login/">Sign in to keep your place</Link>
           )}
-          {store.profile && <button className="btn ghost" type="button" onClick={() => store.toggleSaved(key)}>{store.profile.saved.includes(key) ? "Saved" : "Save for later"}</button>}
-          {prev && <Link href={`${course.path}/archive/${prev.slug}/`}>Previous</Link>}
-          {next && <Link href={`${course.path}/archive/${next.slug}/`}>Next: {next.title}</Link>}
         </div>
+        {next && (
+          <Link className="next-lesson" href={`${course.path}/archive/${next.slug}/`}>
+            <span className="kicker">Next</span>
+            <strong>{next.code} {next.title}</strong>
+          </Link>
+        )}
       </article>
     </div>
   );

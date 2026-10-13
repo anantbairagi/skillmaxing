@@ -9,13 +9,13 @@ const tracks = [
   ["Build AI backends in Python", "FastAPI, streaming, agents, MCP and tracing, with one support-agent project carried through 86 lessons.", "/python-ai/overview/"],
   ["Serve models fast", "Batching, KV cache, quantisation and the arithmetic of a token budget.", "/inference-eng/overview/"],
   ["Design systems that scale", "Queues, caches, sharding, and the design questions that show up in senior interviews.", "/system/overview/"],
-  ["Ask in your own words", "A course assistant that explains, draws the figure and quizzes you. Included with Lifetime on the reference; local here.", "/assistant/"],
+  ["Watch a lesson", "A short video, then the same figures written down, then a check you can answer.", "/python-ai/archive/what-an-ai-backend-is/"],
 ];
 
 const beyond = [
   ["01", "Interactive tools", "Labs", "Change a number, watch the system react", "/labs/"],
   ["02", "One paper a day", "Daily", "A short brief every morning", "/daily/"],
-  ["03", "Ask your doubts", "Course assistant", "Answers from the lessons in this build", "/assistant/"],
+  ["03", "Draw it", "Whiteboard", "Talk through a figure, one step at a time", "/board/"],
   ["04", "Curated shelf", "Resources", "Docs, books and talks", "/system/resources/"],
   ["05", "Get hired", "Hire me", "A profile built on how you build with AI", "/hire-me/"],
   ["06", "Reading order", "Papers", "Landmark papers, in sequence", "/papers/"],
@@ -154,9 +154,9 @@ export function Home() {
           <Link href="/pricing/">View full pricing</Link>
         </div>
         <div className="grid-3" style={{ marginTop: 16 }}>
-          <Plan name="Monthly" price="$29" unit="/month" body="Every current course with the shortest commitment." href="/checkout/?plan=monthly" />
-          <Plan name="Annual" price="$16.58" unit="/month" body="$199 a year. The same full access, paid once a year." href="/checkout/?plan=annual" />
-          <Plan name="Lifetime" price="$299" unit="paid once" body="All current tracks, every future course in this build, and the course assistant." href="/checkout/?plan=lifetime" />
+          <Plan name="Monthly" price="$29" unit="/month" body="Every current course, listed here for reference. This copy does not take payment." href="/pricing/" />
+          <Plan name="Annual" price="$16.58" unit="/month" body="$199 a year on the original. Lessons in this copy are already open." href="/pricing/" />
+          <Plan name="Lifetime" price="$299" unit="paid once" body="Shown so the plans match. There is no checkout on this site." href="/pricing/" />
         </div>
       </section>
 
@@ -188,7 +188,7 @@ function Plan({ name, price, unit, body, href }: { name: string; price: string; 
       <span className="kicker">{name}</span>
       <div className="price">{price} <small>{unit}</small></div>
       <p>{body}</p>
-      <Link className="btn" href={href}>Choose {name}</Link>
+      <Link className="btn ghost" href={href}>Listed on pricing</Link>
     </article>
   );
 }

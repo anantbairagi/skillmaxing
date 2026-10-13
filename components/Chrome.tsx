@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Logo } from "@/components/Marks";
 import { courses, searchIndex, type SearchGroup, type SearchHit } from "@/lib/catalog";
 import { labs } from "@/lib/labs";
@@ -27,16 +27,11 @@ export function Chrome({ children }: { children: React.ReactNode }) {
   const [menu, setMenu] = useState(false);
   const [coursesOpen, setCoursesOpen] = useState(false);
   const [palette, setPalette] = useState(false);
-  const [ask, setAsk] = useState(false);
   const [query, setQuery] = useState("");
   const [tab, setTab] = useState<(typeof GROUPS)[number]>("All");
   const [active, setActive] = useState(0);
   const [note, setNote] = useState("");
   const [notesOn, setNotesOn] = useState(false);
-  const [chat, setChat] = useState<{ who: "me" | "ai"; text: string }[]>([
-    { who: "ai", text: "Ask about a lesson, a paper, or a lab. Answers come from this build's notes." },
-  ]);
-  const [draft, setDraft] = useState("");
 
   const hits = useMemo(() => {
     const index = searchIndex(labs);
@@ -56,7 +51,6 @@ export function Chrome({ children }: { children: React.ReactNode }) {
       if (event.key === "Escape") {
         setPalette(false);
         setMenu(false);
-        setAsk(false);
       }
     };
     window.addEventListener("keydown", onKey);
@@ -67,19 +61,6 @@ export function Chrome({ children }: { children: React.ReactNode }) {
     setMenu(false);
     setCoursesOpen(false);
   }, [path]);
-
-  function askSubmit(event: FormEvent) {
-    event.preventDefault();
-    const text = draft.trim();
-    if (!text) return;
-    const index = searchIndex(labs);
-    const found = index.find((hit) => text.toLowerCase().split(/\s+/).some((word) => word.length > 3 && hit.title.toLowerCase().includes(word)));
-    const reply = found
-      ? `${found.title} is in ${found.group}. ${found.hint}. Open it and use the Read tab, then try the one-number exercise.`
-      : "Nothing in the catalog title matches that yet. Try a shorter word: cache, agent, FastAPI, Raft, batch.";
-    setChat((items) => [...items, { who: "me", text }, { who: "ai", text: reply }]);
-    setDraft("");
-  }
 
   return (
     <>
@@ -104,7 +85,7 @@ export function Chrome({ children }: { children: React.ReactNode }) {
             <span className="brand-name">skillmaxing</span>
           </Link>
           {courseMode ? (
-            <nav className="nav-links" aria-label="Courses">
+            <nav className="course-pills" aria-label="Courses">
               {courses.map((course) => (
                 <Link key={course.id} href={`${course.path}/overview/`} data-active={path.startsWith(course.path)}>
                   {course.id === "system" ? "System Design" : course.name}
@@ -140,7 +121,6 @@ export function Chrome({ children }: { children: React.ReactNode }) {
             </nav>
           )}
           <div className="nav-right">
-            <Link className="skew slim desktop-only" href="/assistant/"><span>Ask the tutor</span></Link>
             <button className="icon-btn" type="button" aria-label="Search" onClick={() => setPalette(true)}>
               <SearchIcon />
             </button>
@@ -177,7 +157,6 @@ export function Chrome({ children }: { children: React.ReactNode }) {
             <Link key={href} href={href}>{label}</Link>
           ))}
           <Link href="/board/">Whiteboard</Link>
-          <Link href="/assistant/">Ask the tutor</Link>
           <Link href={store.profile ? "/dashboard/" : "/login/"}>{store.profile ? "Dashboard" : "Sign in"}</Link>
           <Link href="/settings/">Settings</Link>
         </div>
@@ -192,7 +171,7 @@ export function Chrome({ children }: { children: React.ReactNode }) {
               <input name="email" type="email" required placeholder="Email for new lessons" aria-label="Email address" />
               <button type="submit">Subscribe</button>
             </form>
-            <p>© {new Date().getFullYear()} Skillmaxing study build. Original notes. Made for deliberate technical practice.</p>
+            <p>© {new Date().getFullYear()} Skillmaxing. Made for deliberate technical practice.</p>
           </div>
           <div>
             <h4>Use Skillmaxing</h4>
@@ -224,24 +203,6 @@ export function Chrome({ children }: { children: React.ReactNode }) {
           <Link href="/refunds/">Refunds</Link>
         </div>
       </footer>
-      <button className="fab" type="button" onClick={() => setAsk((open) => !open)}>Ask AI</button>
-      {ask && (
-        <div className="drawer" role="dialog" aria-label="Course assistant">
-          <header>
-            <strong>Course assistant</strong>
-            <button className="btn ghost" type="button" onClick={() => setAsk(false)}>Close</button>
-          </header>
-          <div className="log">
-            {chat.map((item, index) => (
-              <div key={index} className={item.who === "me" ? "bubble me" : "bubble"}>{item.text}</div>
-            ))}
-          </div>
-          <form onSubmit={askSubmit}>
-            <input className="field" value={draft} onChange={(event) => setDraft(event.target.value)} placeholder="Ask about a lesson" aria-label="Question" />
-            <button className="btn" type="submit">Send</button>
-          </form>
-        </div>
-      )}
       {palette && (
         <div className="palette" onClick={() => setPalette(false)}>
           <div className="palette-panel" role="dialog" aria-label="Search" onClick={(event) => event.stopPropagation()}>

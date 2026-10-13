@@ -10,8 +10,8 @@ Study build of skillmaxing.xyz. Lesson prose, blog posts, and the news desk are 
 | Python with AI, 15 modules, 86 lessons, 5 free, 78 with code | Catalog matches |
 | Inference Engineering, 9 modules, 40 lessons, 5 free, 21 with code | Catalog matches |
 | System Design, 31 modules, 217 lessons, 5 free, 5 case files | 32 walkthroughs tagged; the reference filter counted 35 |
-| Lesson watch / read / build, bookmark, mark understood | Working in the browser |
-| Paid lesson gate and local checkout (no card) | Working |
+| Lesson video, notes, check yourself, bookmark, mark understood | Video player on every lesson |
+| Payments and the course assistant | Left out |
 | Labs (6), with live controls | Cache lab checked: 90% hit rate reads 4.8 ms |
 | Papers (36), daily calendar, blog (4), sample news | Working |
 | Dashboard, settings, account, hire profile, reset code | Working locally |
@@ -27,7 +27,7 @@ Study build of skillmaxing.xyz. Lesson prose, blog posts, and the news desk are 
 
 ## Not carried over
 
-- Narrated lesson video and the reference audio
+- The original hosted lesson files. Each lesson has its own playable video, written for this copy
 - Hosted model for the assistant and the live whiteboard session
 - Dodo Payments, tax invoices, and the real billing portal
 - Live AI news wire and X posts

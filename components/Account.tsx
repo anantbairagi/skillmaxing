@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
 import { Figure } from "@/components/Marks";
 import { allLessons, courses, papers } from "@/lib/catalog";
-import { assistantUnlocked, boardAllowance, DEMO_EMAIL, DEMO_PASSWORD, hasFullAccess, useStore, type Plan } from "@/lib/store";
+import { boardAllowance, DEMO_EMAIL, DEMO_PASSWORD, useStore } from "@/lib/store";
 
 export function LoginForm() {
   const store = useStore();
@@ -310,38 +310,12 @@ function DeleteBox({ enabled }: { enabled: boolean }) {
 }
 
 export function CheckoutPage() {
-  const store = useStore();
-  const [plan, setPlan] = useState<Plan>("monthly");
-  const [country, setCountry] = useState("United States");
-  const [done, setDone] = useState(false);
-  useEffect(() => {
-    const value = new URLSearchParams(window.location.search).get("plan");
-    if (value === "monthly" || value === "quarterly" || value === "annual" || value === "lifetime") setPlan(value);
-  }, []);
-  const prices: Record<Plan, string> = { free: "$0", monthly: "$29 / month", quarterly: "$69 / quarter", annual: "$199 / year", lifetime: "$299 once" };
-  const tax = country === "India" ? "GST 18% would be added by a real checkout." : "Local tax would be added by a real checkout.";
-  if (!store.profile) return <Gate title="Checkout" body="Sign in, then confirm a plan. No card is collected." />;
   return (
-    <form className="auth card" onSubmit={(event) => { event.preventDefault(); store.setPlan(plan); setDone(true); }}>
+    <article className="card">
       <h1>Checkout</h1>
-      <p>This confirms a plan for {store.profile.email}. It does not charge a card, and it does not talk to the reference site.</p>
-      <label>Plan
-        <select className="field" value={plan} onChange={(event) => setPlan(event.target.value as Plan)}>
-          <option value="monthly">Monthly · $29</option>
-          <option value="quarterly">Quarterly · $69</option>
-          <option value="annual">Annual · $199</option>
-          <option value="lifetime">Lifetime · $299</option>
-        </select>
-      </label>
-      <label>Country
-        <select className="field" value={country} onChange={(event) => setCountry(event.target.value)}>
-          {["United States", "India", "United Kingdom", "Germany", "Other"].map((item) => <option key={item}>{item}</option>)}
-        </select>
-      </label>
-      <p><strong>{prices[plan]}</strong> before tax. {tax}</p>
-      <button className="btn" type="submit">Confirm plan</button>
-      {done && <p className="ok">Plan set to {plan}. <Link href="/dashboard/">Go to the dashboard</Link>.</p>}
-    </form>
+      <p>Payments are not part of this copy. Every lesson, video, and lab is already open.</p>
+      <Link className="btn" href="/python-ai/overview/">Go to the courses</Link>
+    </article>
   );
 }
 
@@ -350,7 +324,7 @@ export function PricingPage() {
     ["Monthly", "$29", "/month", "$29 a month. Cancel any time in this browser by returning to free.", "monthly"],
     ["Quarterly", "$23", "/month", "$69 every 3 months.", "quarterly"],
     ["Annual", "$16.58", "/month", "$199 a year.", "annual"],
-    ["Lifetime", "$299", "once", "One payment in the real product. Here it unlocks the assistant and 60 whiteboard sessions.", "lifetime"],
+    ["Lifetime", "$299", "once", "Shown so the price list matches. This copy does not sell it.", "lifetime"],
   ] as const;
   return (
     <>
@@ -358,12 +332,11 @@ export function PricingPage() {
       <h1>One account. Every course.</h1>
       <p className="lede">Python with AI, System Design and Inference Engineering. Prices match the reference list. Checkout on this build is simulated.</p>
       <div className="grid-4" style={{ marginTop: 16 }}>
-        {plans.map(([name, price, unit, body, id]) => (
-          <article key={id} className="card">
+        {plans.map(([name, price, unit, body]) => (
+          <article key={name} className="card">
             <span className="kicker">{name}</span>
             <div className="price">{price}<small> {unit}</small></div>
             <p>{body}</p>
-            <Link className="btn" href={`/checkout/?plan=${id}`}>Choose {name}</Link>
           </article>
         ))}
       </div>
@@ -371,7 +344,7 @@ export function PricingPage() {
         <h2 style={{ fontSize: 32 }}>Every subscription includes</h2>
         <ul>
           <li>All three courses: every lesson, watch script, notes and exercise</li>
-          <li>The course assistant on Lifetime, and on any plan for a verified KIIT flag</li>
+          <li>Payments and the course assistant are not part of this copy</li>
           <li>Progress kept in this browser</li>
         </ul>
         <p className="muted">Company budgets and tax invoices belong to a real processor. This build does not issue them.</p>
@@ -474,51 +447,12 @@ export function BoardPage() {
 }
 
 export function AssistantPage() {
-  const store = useStore();
-  const [messages, setMessages] = useState<{ who: "me" | "ai"; text: string }[]>([{ who: "ai", text: "Ask in your own words. I answer from the lesson titles and notes in this build." }]);
-  const [text, setText] = useState("");
-  const [quiz, setQuiz] = useState<string | null>(null);
-  const unlocked = assistantUnlocked(store.profile);
-  function send(event: FormEvent) {
-    event.preventDefault();
-    const question = text.trim();
-    if (!question) return;
-    if (!store.profile) {
-      setMessages((items) => [...items, { who: "me", text: question }, { who: "ai", text: "Sign in first. The assistant is open on Lifetime, or on any plan with the KIIT flag." }]);
-      setText("");
-      return;
-    }
-    if (!unlocked) {
-      setMessages((items) => [...items, { who: "me", text: question }, { who: "ai", text: "This account does not include the assistant yet. Lifetime includes it. A KIIT flag in settings does too, as a local stand-in for verified students." }]);
-      setText("");
-      return;
-    }
-    if (!store.useAssistant()) {
-      setMessages((items) => [...items, { who: "me", text: question }, { who: "ai", text: "Daily limit reached: 40 questions. It resets tomorrow on this browser." }]);
-      setText("");
-      return;
-    }
-    const hit = allLessons().find((lesson) => question.toLowerCase().split(/\s+/).some((word) => word.length > 3 && lesson.title.toLowerCase().includes(word)));
-    const reply = hit
-      ? `${hit.title} (${hit.code}) is in ${hit.module}. Open the lesson, read the figure caption, and answer the try-it in your own words before you look at the quiz.`
-      : "I can stay inside the catalog. Name a topic that appears in a lesson title: KV cache, idempotency, FastAPI, Raft, batching.";
-    setMessages((items) => [...items, { who: "me", text: question }, { who: "ai", text: reply }]);
-    setQuiz(hit ? `Quiz: what promise does “${hit.title}” make, and what failure would prove you understood it?` : null);
-    setText("");
-  }
   return (
-    <>
+    <article>
       <h1>Course assistant</h1>
-      <p className="lede">Included with Lifetime, and with the KIIT flag. The reference product answers with a hosted model. This one answers from the catalog, in the browser.</p>
-      <div className="card" style={{ display: "grid", gap: 8 }}>
-        {messages.map((item, index) => <div key={index} className={item.who === "me" ? "bubble me" : "bubble"}>{item.text}</div>)}
-        {quiz && <div className="card"><Figure kind="loop" /><p>{quiz}</p></div>}
-        <form className="news-form" onSubmit={send}>
-          <input aria-label="Question" value={text} onChange={(event) => setText(event.target.value)} placeholder="Ask about a lesson" />
-          <button type="submit">Ask</button>
-        </form>
-      </div>
-    </>
+      <p className="lede">The assistant is not part of this copy. Lessons still include a video, notes, and a check you answer yourself.</p>
+      <Link className="btn" href="/python-ai/archive/what-an-ai-backend-is/">Open a lesson</Link>
+    </article>
   );
 }
 
@@ -666,6 +600,3 @@ function lastWeeks(days: string[]) {
   return cells;
 }
 
-export function accessLabel(plan: Plan) {
-  return hasFullAccess({ plan } as never) ? "paid" : "free";
-}

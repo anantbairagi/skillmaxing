@@ -1,130 +1,218 @@
 import type { Lesson } from "@/lib/catalog";
+import type { FigureKind } from "@/components/Marks";
 
-export type FigureKind = "flow" | "cache" | "queue" | "loop" | "bars" | "gpu";
-
-export type LessonNote = {
-  figure: FigureKind;
+export type Scene = {
+  title: string;
+  seconds: number;
   caption: string;
-  watch: string[];
+  visual: FigureKind;
+};
+
+export type Section = {
+  heading: string;
+  kicker?: string;
   paragraphs: string[];
-  code: string | null;
-  tryIt: string;
-  quiz: { prompt: string; choices: string[]; answer: number };
+  table?: { headers: string[]; rows: string[][] };
+  code?: string;
 };
 
-const essays: Record<string, Omit<LessonNote, "quiz"> & { quiz?: LessonNote["quiz"] }> = {
+export type Check = { q: string; a: string };
+
+export type LessonDoc = {
+  oneLine: string;
+  readMin: number;
+  scenes: Scene[];
+  sections: Section[];
+  tryIt: string[];
+  checks: Check[];
+};
+
+const hand: Record<string, LessonDoc> = {
   "what-an-ai-backend-is": {
-    figure: "flow",
-    caption: "A request comes in, waits on a model or a tool, and leaves as a stream.",
-    watch: [
-      "An AI backend is an ordinary service with one expensive, slow dependency: the model.",
-      "The request still has auth, validation, storage, and a timeout. The model does not replace those.",
-      "Most of the wall clock is waiting. Streaming exists so the user can see the wait.",
-      "The project in this path is one support agent, carried until it is traced and deployed.",
+    oneLine: "An AI backend is an ordinary web service with one slow, costly, unpredictable call in the middle. Most of the work is everything around that call.",
+    readMin: 8,
+    scenes: [
+      { title: "A ticket comes in", seconds: 28, visual: "flow", caption: "Priya sends a message about ticket 4821. Your service still has to check the request, load the ticket, and save the reply. Only the middle step is new: a call to a model." },
+      { title: "Five parts", seconds: 32, visual: "loop", caption: "API, data, model, tools, and a record of what happened. Four of those look like any service that calls an outside API. The tools part is the one where the model can ask your code to run a function." },
+      { title: "One message, timed", seconds: 30, visual: "bars", caption: "Walk the same message down the steps and watch the time column. Database reads are milliseconds. The two model calls are the only rows that take seconds." },
+      { title: "Not a database query", seconds: 34, visual: "cache", caption: "A model call is slower, it is billed by the text you send, and the same question can come back worded differently. That is why the reply is streamed, cached where it can be, and tested by shape rather than by exact text." },
+      { title: "Why 20 users can freeze a small service", seconds: 36, visual: "queue", caption: "Eight workers that each hold a request for 20 milliseconds can serve hundreds of requests a second. If each chat holds a worker for about 10 seconds, user nine is already waiting. Waiting has to release the worker." },
     ],
-    paragraphs: [
-      "Start with the shape, not the framework. A person sends a message. Your service checks who they are, loads the ticket, calls a model, maybe calls a tool, and writes the reply back. Every box around the model is the backend.",
-      "The model call is different from a database query in two ways that matter. It is slow enough that a synchronous worker feels stuck, and its output is a stream of tokens rather than a single row. Those two facts decide FastAPI, async, and server-sent events later in the path.",
-      "Nothing here requires a hosted model on day one. You can stub the call, assert the route, and keep the same function signature when a real provider shows up. The boundary is a function that accepts messages and returns text or a stream.",
+    sections: [
+      {
+        heading: "The shape of the request",
+        paragraphs: [
+          "Picture a support agent named Priya looking at ticket 4821. She types a question and presses send. Your backend receives a message, a ticket id, and a user. Most of what happens next is ordinary: validate the body, read the ticket, write the reply back.",
+          "One step is different. In the middle, the service asks a language model. An AI backend is a web service that makes that call while it handles the request. In this course the service is called Relay, a helper for teams like Priya's. Each lesson adds one piece of Relay, and the piece stays in the project.",
+        ],
+      },
+      {
+        heading: "The five parts of an AI backend",
+        paragraphs: [
+          "Whatever framework you pick, Relay ends up with the same five parts: an API that accepts the message, a database that holds the ticket and the chat, a model call, tools the model is allowed to ask for, and a trace of the prompt, the tool calls, and the raw reply.",
+          "The tools row is the odd one. In a normal service your code decides every step. Here the model can answer with a request instead of text, such as lookup_customer for customer 77. Your code decides whether that is allowed, runs the function, and sends the result back. The model tries again with the new facts. That loop is an agent. You will write it by hand before a framework hides it.",
+        ],
+        table: {
+          headers: ["Part", "Relay's job"],
+          rows: [
+            ["API", "Take the message and say who is calling"],
+            ["Data", "Load the ticket and the chat so far"],
+            ["Model", "Ask for the next reply"],
+            ["Tools", "Run only the functions you allow"],
+            ["Trace", "Keep the prompt, the tool calls, and the raw output"],
+          ],
+        },
+      },
+      {
+        heading: "One message through Relay",
+        paragraphs: [
+          "Follow ticket 4821 from the first check to the saved record and watch the time column. Auth, the database, and the save are milliseconds. The model calls are the only steps that take seconds.",
+          "The sketch below uses a stand-in for the model. If the reply is text, that is the answer. If the reply is a tool request, Relay runs the tool and loops. Later lessons replace each line with a real piece.",
+        ],
+        code: `def answer(ticket_id, message):
+    history = load_history(ticket_id)
+    history.append({"role": "user", "content": message})
+    while True:
+        reply = call_model(history)
+        if reply.kind == "text":
+            save_turn(ticket_id, reply.text)
+            return reply.text
+        history.append(run_tool(reply.tool))`,
+      },
+      {
+        heading: "How a model call differs from a database query",
+        paragraphs: [
+          "Speed changes the design first. Nobody should stare at a spinner for ten seconds, so Relay streams tokens to the browser from the first version.",
+          "Cost is next. Providers bill by token, a short piece of text. Relay sends the chat again on each call, so a long chat costs more every time. A cache and a shorter history are how you stop paying twice for the same context.",
+          "The last difference breaks an old testing habit. The same question can come back in different words. Tests check the shape of the answer and which tools were chosen, not one exact sentence.",
+        ],
+        table: {
+          headers: ["", "Database query", "Model call"],
+          rows: [
+            ["Time", "Milliseconds", "Seconds"],
+            ["Bill", "Mostly flat", "Per token, both ways"],
+            ["Same input", "Same rows", "Wording can change"],
+          ],
+        },
+      },
+      {
+        heading: "Where it goes wrong",
+        paragraphs: [
+          "A common bug is to treat the model's words as a command. If Relay escalates a ticket whenever the reply contains the phrase \"escalate this ticket\", a customer can type those words and pull a person into the queue. The model may suggest. Your code decides.",
+          "Another bug is to have nothing to look at the next day. A trace holds the prompt, each tool call with its result, and the raw output. Give every model call a timeout, a spend limit, a retry limit, and that trace from the start.",
+          "The third bug is the worker. Say Relay runs 8 workers, each handling one request at a time. A normal request holds a worker for about 20 ms, so 8 workers serve on the order of 400 requests a second. A chat that holds a worker for about 10 seconds drops that to less than one request a second, and the next person waits. Later, async code frees the worker while the model writes. The provider still caps how many calls you can have in flight, so Relay uses a semaphore, a counter that lets only so many model calls run at once.",
+          "Retries cost money too. Each retry sends the prompt again. The provider SDKs retry on their own and will wait a long time unless you set a limit.",
+        ],
+      },
     ],
-    code: `def answer(ticket_id: str, message: str) -> str:\n    history = load_history(ticket_id)\n    history.append({"role": "user", "content": message})\n    reply = call_model(history)\n    save_turn(ticket_id, reply)\n    return reply`,
-    tryIt: "Name the boxes around the model in a support reply: auth, history, the call, the save. Which one is allowed to take multiple seconds?",
-  },
-  "what-inference-engineering-is": {
-    figure: "gpu",
-    caption: "Prefill reads the prompt. Decode emits tokens, and the KV cache is why decode gets heavy.",
-    watch: [
-      "Inference engineering is the work of serving a model inside a latency and money budget.",
-      "Training made the weights. Serving has to spend them on every request.",
-      "The first split is prefill versus decode. They stress the machine differently.",
-      "You measure time to first token and tokens per second before you buy a bigger GPU.",
+    tryIt: [
+      "Before you write code, draw Relay as five boxes. Follow a message that was charged twice through them, number each step, and mark where the request waits longest and where it costs money.",
+      "Keep the sketch. When you get to tracing, compare it with a real run. The next lesson sets up Python 3.14, uv, and your editor.",
     ],
-    paragraphs: [
-      "A model that scored well in a paper is not yet a service. Someone has to decide the batch, the precision, the cache, and what happens when fifty requests arrive in the same second.",
-      "The useful question is arithmetic. How many bytes does the KV cache cost for this context length, and does that fit in the GPU you actually have? If it does not, the quality of the checkpoint is irrelevant.",
-      "This track stays on that arithmetic: batching, quantisation, speculation, parallelism, and the autoscaler that notices the queue. The capstone is a small serving plan, not a new architecture.",
+    checks: [
+      { q: "Relay calls the model, and the reply is a request to run lookup_customer. What does Relay's code do next?", a: "It checks that the tool is allowed, runs it, appends the result, and calls the model again. It does not treat the tool name as the user's answer." },
+      { q: "In the path for ticket 4821, which steps take seconds, and why does that make Relay stream?", a: "The model calls. Everything else is milliseconds. Streaming lets Priya read the reply while those seconds are still passing." },
+      { q: "Yesterday Relay gave a customer a strange answer, and your lead asks why. What must you have kept?", a: "The trace: the prompt, each tool call and its result, and the model's raw output." },
     ],
-    code: null,
-    tryIt: "Write the two numbers you would ask for before changing a serving stack: time to first token, and tokens per second at the batch you expect.",
-  },
-  "what-a-system-is": {
-    figure: "flow",
-    caption: "A system is a boundary, a promise, and the failure you are willing to show the caller.",
-    watch: [
-      "A system is the thing a caller depends on, not the diagram of boxes you drew first.",
-      "The promise is a latency, a durability story, and what happens when a dependency is down.",
-      "Most designs fail by being vague about the promise, not by picking the wrong database.",
-      "The rest of this path is one promise at a time, with a number attached.",
-    ],
-    paragraphs: [
-      "Call something a system when another team can build against it without reading your process list. The interface, the data it remembers, and the way it fails are the product. The servers are how you afford the promise.",
-      "A useful design starts with the caller. What do they send, what must be true when you reply, and which delays are acceptable? If you cannot say those in a sentence, the boxes on the whiteboard are decoration.",
-      "This course walks that sentence from a single request out to caches, partitions, and interviews. The interview is the same skill with a clock: make the promise, then spend the minutes on the part that can break it.",
-    ],
-    code: null,
-    tryIt: "Pick a service you used today. Write its promise in one sentence, including one way it is allowed to fail.",
   },
 };
 
-function figureFor(title: string): FigureKind {
+function visualFor(title: string): FigureKind {
   const t = title.toLowerCase();
-  if (/cache|cdn|kv/.test(t)) return "cache";
-  if (/queue|batch|fanout|backpressure|schedul/.test(t)) return "queue";
-  if (/agent|loop|tool|graph|mcp/.test(t)) return "loop";
-  if (/gpu|quant|attention|prefill|cuda|batching/.test(t)) return "gpu";
-  if (/count|metric|latency|percent|cost|scal/.test(t)) return "bars";
+  if (/cache|cdn|kv|prefix/.test(t)) return "cache";
+  if (/queue|batch|fan|schedul|worker|async wait/.test(t)) return "queue";
+  if (/agent|loop|tool|graph|mcp|handoff/.test(t)) return "loop";
+  if (/gpu|quant|attention|prefill|cuda|specul/.test(t)) return "gpu";
+  if (/count|metric|latency|percent|cost|scal|number/.test(t)) return "bars";
   return "flow";
 }
 
-function codeFor(title: string, courseName: string): string | null {
+function codeFor(title: string, withCode: boolean): string | undefined {
+  if (!withCode) return undefined;
   const t = title.toLowerCase();
-  if (courseName.startsWith("Python") || /fastapi|pydantic|async|pytest|sqlalchemy/.test(t)) {
-    if (/pydantic|model/.test(t)) return `class Ticket(BaseModel):\n    id: str\n    body: str = Field(min_length=1)\n\nTicket.model_validate({"id": "t_1", "body": "hi"})`;
-    if (/fastapi|path|router|middleware/.test(t)) return `@app.post("/tickets")\nasync def create(ticket: Ticket, db: Session = Depends(get_db)) -> Ticket:\n    return await db.save(ticket)`;
-    if (/async|timeout|gather/.test(t)) return `async with asyncio.timeout(2):\n    reply, profile = await asyncio.gather(call_model(history), load_user(user_id))`;
-    return `def step(state: dict) -> dict:\n    state["seen"] = state.get("seen", 0) + 1\n    return state`;
+  if (/pydantic|model and validation|field/.test(t)) {
+    return `class Ticket(BaseModel):\n    id: str\n    body: str = Field(min_length=1)`;
   }
-  if (/sql|index|pagination|lock/.test(t)) return `select id, body\nfrom tickets\nwhere id > $cursor\norder by id\nlimit 50;`;
-  if (/bloom|hash|sketch|sample/.test(t)) return `def maybe_seen(item: bytes) -> bool:\n    return all(bit[hash(item, i)] for i in range(k))`;
-  return null;
+  if (/fastapi|path|router|middleware|auth/.test(t)) {
+    return `@app.post("/tickets")\nasync def create(ticket: Ticket) -> Ticket:\n    return await save(ticket)`;
+  }
+  if (/async|timeout|gather|httpx/.test(t)) {
+    return `async with asyncio.timeout(2):\n    reply, row = await asyncio.gather(call_model(history), load_ticket(ticket_id))`;
+  }
+  if (/sql|index|pagination|lock|wal|btree/.test(t)) {
+    return `select id, body\nfrom tickets\nwhere id > $cursor\norder by id\nlimit 50;`;
+  }
+  if (/bloom|hash|sketch|sample/.test(t)) {
+    return `def maybe_seen(item: bytes) -> bool:\n    return all(bits[hash(item, i) % m] for i in range(k))`;
+  }
+  return `def step(state: dict) -> dict:\n    state["turns"] = state.get("turns", 0) + 1\n    return state`;
 }
 
-export function lessonNote(courseName: string, moduleTitle: string, lesson: Lesson): LessonNote {
-  const essay = essays[lesson.slug];
-  const figure = essay?.figure ?? figureFor(lesson.title);
-  const paragraphs = essay?.paragraphs ?? [
-    `${lesson.title} sits in ${moduleTitle} on the ${courseName} path. The lesson is one decision: what you are trying to make true, and which cost you are willing to pay for it.`,
-    `Read it as a constraint, not a glossary entry. If ${lesson.title.toLowerCase()} is doing its job, a caller can predict the next failure. If it is only a diagram, you cannot.`,
-    lesson.kind === "walkthrough"
-      ? "This is a design walkthrough. Start from the promise, add one component when the number demands it, and say what you refused to add."
-      : lesson.kind === "case"
-        ? "This is a case file. The point is the constraint the team actually had, and the part of the textbook design they did not use."
-        : "Keep a number next to the idea: a latency, a byte count, a fan-out, or a failure you can name. The number is what you will defend later.",
+export function lessonDoc(courseName: string, moduleTitle: string, lesson: Lesson): LessonDoc {
+  const written = hand[lesson.slug];
+  if (written) return written;
+  const visual = visualFor(lesson.title);
+  const code = codeFor(lesson.title, lesson.codeLab);
+  const oneLine = `${lesson.title} is one decision in ${moduleTitle}: what you are making true, what it costs, and how you would notice you chose wrong.`;
+  const scenes: Scene[] = [
+    { title: "The decision", seconds: 18, visual, caption: `${lesson.title} sits in ${moduleTitle} on ${courseName}. Start from the caller, not from a new box.` },
+    { title: "The mechanism", seconds: 22, visual, caption: `Name the moving part. If you cannot point at it, ${lesson.title.toLowerCase()} is still a label.` },
+    { title: "The number", seconds: 20, visual: "bars", caption: "Put a number next to it: a latency, a byte count, a fan-out, or a failure you can reproduce." },
+    { title: "Where it breaks", seconds: 22, visual: "queue", caption: `The usual failure is to add ${lesson.title.toLowerCase()} and forget the case where the assumption is false.` },
+    { title: "What you keep", seconds: 16, visual: "flow", caption: "Leave the lesson with one sentence you could defend at 2 a.m., and the next lesson in the path." },
   ];
-  const watch = essay?.watch ?? [
-    `${lesson.title} is the next decision in ${moduleTitle}.`,
-    paragraphs[0],
-    "Watch the figure change with the sentence, then read the same picture in the notes.",
-    "The exercise asks you to add one piece, not to rebuild the system.",
-  ];
-  const code = essay?.code ?? (lesson.codeLab ? codeFor(lesson.title, courseName) : null);
-  const choices = [
-    "Make the promise and the failure explicit before adding components.",
-    "Add a queue, a cache, and a second region first, then name the requirement.",
-    "Skip measurement until the design feels finished.",
-    "Treat the diagram as the requirement.",
+  const sections: Section[] = [
+    {
+      heading: "In context",
+      paragraphs: [
+        `${lesson.title} is part of ${moduleTitle}. ${courseName} uses it the same way it uses the rest of the path: one idea, one figure, then a piece you could add to a real service.`,
+        lesson.kind === "walkthrough"
+          ? "Treat this as a walkthrough. Start from the promise, add a component only when a number demands it, and say what you refused to add."
+          : lesson.kind === "case"
+            ? "Treat this as a case. The useful part is the constraint the team actually had, and the textbook piece they did not use."
+            : "Read it as a constraint. A caller should be able to predict the next failure.",
+      ],
+    },
+    {
+      heading: "What to watch in the video",
+      paragraphs: [
+        scenes[1].caption,
+        scenes[2].caption,
+      ],
+    },
+    {
+      heading: "A concrete check",
+      paragraphs: [
+        scenes[3].caption,
+        `Write the check in the terms of ${lesson.title.toLowerCase()}, not as a slogan. If a teammate can disagree with the number, the lesson did its job.`,
+      ],
+      code,
+    },
   ];
   return {
-    figure,
-    caption: essay?.caption ?? `One picture for ${lesson.title}: the moving part is the constraint, not the decoration.`,
-    watch,
-    paragraphs,
-    code,
-    tryIt: essay?.tryIt ?? `In two sentences, explain ${lesson.title} to someone who will operate it at 2 a.m. Include one number or one failure.`,
-    quiz: essay?.quiz ?? {
-      prompt: `What should you be able to say after ${lesson.title}?`,
-      choices,
-      answer: 0,
-    },
+    oneLine,
+    readMin: lesson.codeLab ? 8 : 6,
+    scenes,
+    sections,
+    tryIt: [
+      `In two sentences, explain ${lesson.title} to the person who will operate it. Include one number or one failure.`,
+      "Then mark the lesson understood only if you could redraw the figure without the notes.",
+    ],
+    checks: [
+      { q: `What should be true after you have finished ${lesson.title}?`, a: "You can name the promise, the cost, and one way it fails, without adding a new component first." },
+      { q: "What is a weak answer?", a: "A diagram with no number, or a component added before the requirement is stated." },
+      { q: "What do you keep so you can defend it later?", a: "The figure from the video and the sentence with the number. They are the same idea." },
+    ],
   };
+}
+
+export function videoDuration(doc: LessonDoc) {
+  return doc.scenes.reduce((sum, scene) => sum + scene.seconds, 0);
+}
+
+export function formatClock(seconds: number) {
+  const whole = Math.max(0, Math.floor(seconds));
+  const m = Math.floor(whole / 60);
+  const s = whole % 60;
+  return `${m}:${s.toString().padStart(2, "0")}`;
 }

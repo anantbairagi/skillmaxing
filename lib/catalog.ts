@@ -132,7 +132,6 @@ export function searchIndex(labTitles: { title: string; slug: string; topic: str
   hits.push(
     { title: "Pricing", href: "/pricing/", group: "Tools", hint: "Plans" },
     { title: "Whiteboard", href: "/board/", group: "Tools", hint: "Tutor" },
-    { title: "Course assistant", href: "/assistant/", group: "Tools", hint: "Ask" },
     { title: "Dashboard", href: "/dashboard/", group: "Tools", hint: "Progress" },
   );
   return hits;

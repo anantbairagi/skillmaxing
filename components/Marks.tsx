@@ -10,7 +10,9 @@ export function Logo({ size = 28 }: { size?: number }) {
   );
 }
 
-export function Figure({ kind }: { kind: "flow" | "cache" | "queue" | "loop" | "bars" | "gpu" }) {
+export type FigureKind = "flow" | "cache" | "queue" | "loop" | "bars" | "gpu";
+
+export function Figure({ kind }: { kind: FigureKind }) {
   const common = { fill: "none", stroke: "currentColor", strokeWidth: 1.6 };
   if (kind === "bars") {
     return (
