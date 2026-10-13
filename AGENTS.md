@@ -46,7 +46,7 @@ Lesson videos in `public/media/` are original files committed in git. Notes in `
 - Sync with `origin/main` before you start and again before you open or update the PR.
 - Do not push to someone else’s branch unless they asked.
 - Do not force-push `main`. Do not bypass the ruleset, even if GitHub lets an admin do it.
-- Merge via pull request after `CI / verify` is green. Review is requested from the owner. A second maintainer is not required yet, because the repo has one admin. See [docs/DECISIONS.md](docs/DECISIONS.md).
+- Merge via pull request after `verify` is green. Review is requested from the owner. A second maintainer is not required yet, because the repo has one admin. See [docs/DECISIONS.md](docs/DECISIONS.md).
 
 ## Definition of done
 

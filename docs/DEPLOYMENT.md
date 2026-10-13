@@ -14,7 +14,7 @@ Pushing to `main` starts `.github/workflows/pages.yml`:
 
 The Pages API reports `build_type: workflow` and `html_url: https://anantbairagi.github.io/skillmaxing/`. HTTPS is enforced. No custom domain is set.
 
-Pull requests run `.github/workflows/ci.yml` (`CI / verify`): the same install, test, and build, without deploying.
+Pull requests run `.github/workflows/ci.yml` (`verify`): the same install, test, and build, without deploying.
 
 ## Watch a deploy
 

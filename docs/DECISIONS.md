@@ -30,10 +30,10 @@ The local demo account is created in `lib/store.tsx` when those credentials are 
 
 Checked 2026-10-13: the only collaborator is `anantbairagi` (admin). Requiring an approving review would block every PR, because GitHub does not let the author approve their own pull request.
 
-The ruleset `protect-main` therefore requires a pull request and the `CI / verify` check, and rejects force-pushes and deletion of `main`. It does not require a reviewer. When a second person has Write access, switch the ruleset to require one approval and turn on code-owner review. `CODEOWNERS` already names the owner so that switch is a settings change, not a new file.
+The ruleset `protect-main` therefore requires a pull request and the `verify` check, and rejects force-pushes and deletion of `main`. It does not require a reviewer. When a second person has Write access, switch the ruleset to require one approval and turn on code-owner review. `CODEOWNERS` already names the owner so that switch is a settings change, not a new file.
 
 Agents do not flip this setting. The owner does.
 
 ## CI check name
 
-The required check is the job in `.github/workflows/ci.yml`. GitHub reports it as `CI / verify`. Pages deploy stays a separate workflow so a docs-only discussion is not the deploy itself, but a merge to `main` still deploys.
+The required check is the job in `.github/workflows/ci.yml`. On pull request 1, GitHub reported that check as `verify`. Pages deploy stays a separate workflow, and a merge to `main` still deploys.

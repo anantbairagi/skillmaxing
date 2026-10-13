@@ -25,7 +25,7 @@ Verified against `main` as of the handoff on 2026-10-13. If this file disagrees 
 - Lesson videos are about eight seconds. They show the lesson code and title. They are not narrated course recordings.
 - Notes for lessons other than `what-an-ai-backend-is` are generated in `lib/notes.ts`, not hand-edited.
 - Account passwords sit in `localStorage` as plain text. They never leave the machine. That is not a design to copy onto a server.
-- `main` protection: a ruleset named `protect-main` is the intended enforcement (pull request required, `CI / verify` required, no force-push, no deletion). Confirm it with `gh api repos/anantbairagi/skillmaxing/rulesets`. Approving reviews are not required while there is only one admin.
+- `main` protection: a ruleset named `protect-main` is the intended enforcement (pull request required, `verify` required, no force-push, no deletion). Confirm it with `gh api repos/anantbairagi/skillmaxing/rulesets`. Approving reviews are not required while there is only one admin.
 - The local demo password lives in `lib/store.tsx`. It is not a production credential.
 
 ## Active work

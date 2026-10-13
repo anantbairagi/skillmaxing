@@ -32,7 +32,7 @@ Only `NEXT_PUBLIC_BASE_PATH`. Empty locally. `/skillmaxing` for GitHub Pages. Na
 3. Look at open PRs and issues. If they touch the same files, comment there instead of starting a second edit.
 4. Commit on that branch. Do not commit on `main`.
 5. Open a pull request. The template is the checklist.
-6. Wait for the `CI / verify` check. Fix failures on the same branch.
+6. Wait for the `verify` check. Fix failures on the same branch.
 7. Merge the PR. Do not force-push `main`.
 
 If two branches edit the same lines, rebase or merge `main` into the feature branch and resolve the conflict there. Do not resolve it by deleting the other branch.

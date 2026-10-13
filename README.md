@@ -31,4 +31,4 @@ Not included: the course assistant, quiz chat, and card payments. See [docs/PROJ
 
 ## Change the site
 
-Branch from `main`, open a pull request, and wait for `CI / verify`. Do not push to `main`. [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) has the branch names and the definition of done.
+Branch from `main`, open a pull request, and wait for `verify`. Do not push to `main`. [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) has the branch names and the definition of done.

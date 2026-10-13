@@ -95,7 +95,7 @@ Sign in from `/login/` with **Use local demo account**. The password is a client
 | History | [docs/CHANGELOG.md](docs/CHANGELOG.md) |
 | Rules for AI agents | [AGENTS.md](AGENTS.md) |
 
-Production changes go through a pull request. `CI / verify` must pass. Do not push to `main`.
+Production changes go through a pull request. `verify` must pass. Do not push to `main`.
 
 ## Services you do not need
 
