@@ -1,0 +1,15 @@
+---
+description: Mandatory project rules for every task in this repository
+alwaysApply: true
+---
+
+# Follow AGENTS.md
+
+Before any code change, read `AGENTS.md` and the doc it points to for the area you are touching.
+
+- Work on a branch named `feat/`, `fix/`, `docs/`, or `chore/` plus a short name. Do not commit to `main`.
+- Do not overwrite other branches or uncommitted work. Pull `origin/main` and check open PRs first.
+- Do not add the course assistant, payments, or reference-site lesson videos.
+- Do not copy the local demo password into Markdown, issues, or logs.
+- Update the docs listed in `AGENTS.md` when behavior or architecture changes.
+- Run `npm test` before you finish.

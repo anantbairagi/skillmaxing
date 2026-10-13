@@ -1,38 +1,34 @@
 # Skillmaxing study build
 
-An independent, working study build of the Skillmaxing learning product: three course tracks, labs, a paper calendar, a local account, and a simulated checkout. Lesson notes, blog posts, and news items are original. Narrated videos, payment processing, and the hosted course model are not connected.
+Static study site for three engineering courses, labs, papers, and a browser-local account. The visual reference is [skillmaxing.xyz](https://skillmaxing.xyz/). Lesson text and lesson videos in this repo are original.
 
-## Local demo account
+Live site: https://anantbairagi.github.io/skillmaxing/
 
-Sign in with:
+New teammate: start with [PRODUCT_HANDOFF.md](PRODUCT_HANDOFF.md).
 
-- Email: `abairagi.driptiv@gmail.com`
-- Password: `study-local`
+AI agents: [AGENTS.md](AGENTS.md) is required before any edit.
 
-Or use **Use local demo account** on the sign-in page. Progress stays in this browser's `localStorage`. The reference site password is not stored in this project.
+## Run it
 
-## Scripts
+Node.js 22.
 
 ```bash
-npm install
+npm ci
 npm test
 npm run dev
-npm run build
 ```
 
-`npm run build` writes a static site to `out/`. Set `NEXT_PUBLIC_BASE_PATH` when the site is hosted under a subpath, such as `/skillmaxing` on GitHub Pages.
+Open http://localhost:3000/. Sign in with **Use local demo account** on `/login/`. Progress stays in this browser. Details and the production path prefix are in [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md).
 
-## What is real here
+## What is in the box
 
-- Course maps for Python with AI (86), Inference Engineering (40), and System Design (217)
-- Free lessons in full, and a local plan switch that unlocks the rest
-- Six interactive labs
-- Search, dashboard, streaks, bookmarks, papers, daily brief, assistant, and whiteboard sessions
+- Python with AI (86), Inference Engineering (40), System Design (217)
+- A native lesson video and original notes on every lesson
+- Six labs, 36 papers, daily brief, blog, sample news
+- Dashboard, settings, and a local plan label
 
-## What is simulated
+Not included: the course assistant, quiz chat, and card payments. See [docs/PROJECT_STATE.md](docs/PROJECT_STATE.md).
 
-- Checkout does not charge a card
-- The assistant answers from the catalog in the browser
-- The whiteboard draws a short scripted lesson
-- Password reset shows a code on screen because there is no mail server
-- News is a sample desk, not a live wire
+## Change the site
+
+Branch from `main`, open a pull request, and wait for `verify`. Do not push to `main`. [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) has the branch names and the definition of done.

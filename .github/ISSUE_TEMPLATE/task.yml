@@ -1,0 +1,38 @@
+name: Task
+description: One scoped change for a person or an agent
+title: "[task] "
+labels: []
+body:
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope
+      description: What will change, and what will not.
+    validations:
+      required: true
+  - type: input
+    id: branch
+    attributes:
+      label: Branch
+      description: Planned branch name, such as feat/lesson-caption.
+      placeholder: feat/short-name
+    validations:
+      required: true
+  - type: dropdown
+    id: status
+    attributes:
+      label: Status
+      options:
+        - claimed
+        - in progress
+        - ready for review
+        - blocked
+    validations:
+      required: true
+  - type: textarea
+    id: conflict
+    attributes:
+      label: Other work to avoid
+      description: Open PRs or files this task must not overwrite.
+    validations:
+      required: false

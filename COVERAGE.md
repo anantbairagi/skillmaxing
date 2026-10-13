@@ -15,7 +15,7 @@ Study build of skillmaxing.xyz. Lesson prose, blog posts, and the news desk are 
 | Labs (6), with live controls | Cache lab checked: 90% hit rate reads 4.8 ms |
 | Papers (36), daily calendar, blog (4), sample news | Restyled panels and mono labels. Paper order unchanged |
 | Dashboard, settings, account, hire profile | Progress, streak, and continue cards. Reset code still local |
-| Sign-in | Local demo `abairagi.driptiv@gmail.com` / `study-local` |
+| Sign-in | Local demo button on `/login/`. Password is the client constant in `lib/store.tsx`, not a hosted secret |
 
 ## Checked in the browser
 
