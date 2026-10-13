@@ -7,7 +7,7 @@
     "predev": "node data/gen.mjs",
     "dev": "next dev",
     "build": "next build",
-    "test": "tsx --test test/catalog.test.ts test/labs.test.ts"
+    "test": "tsx --test test/catalog.test.ts test/labs.test.ts test/docs.test.ts"
   },
   "dependencies": {
     "next": "^15.5.4",
