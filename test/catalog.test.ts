@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 
 const catalog = JSON.parse(readFileSync(new URL("../data/catalog.json", import.meta.url), "utf8"));
 
@@ -13,6 +13,17 @@ describe("catalog", () => {
     assert.equal(count("system"), 217);
     assert.equal(catalog.papers.length, 36);
     assert.equal(catalog.posts.length, 4);
+  });
+
+  it("has an original video for every lesson", () => {
+    for (const course of catalog.courses) {
+      for (const mod of course.modules) {
+        for (const lesson of mod.lessons) {
+          const file = new URL(`../public/media/${course.id}/${lesson.slug}.mp4`, import.meta.url);
+          assert.equal(existsSync(file), true, `${course.id}/${lesson.slug}`);
+        }
+      }
+    }
   });
 
   it("keeps slugs unique inside each course", () => {

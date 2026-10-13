@@ -118,54 +118,56 @@ export function Dashboard() {
   const done = profile.understood.length;
   const heatmap = lastWeeks(profile.activeDays);
   return (
-    <>
-      <p className="kicker">{profile.name} · {profile.plan} plan</p>
+    <div className="dash">
+      <p className="htag">{profile.name} · {profile.plan} plan</p>
       <h1>Dashboard</h1>
-      <p className="lede">Progress, activity, and where to pick up next. {profile.goal || "Set a learning goal in settings."}</p>
-      <div className="grid-4">
-        <Stat label="Completed" value={String(done)} />
-        <Stat label="Current streak" value={`${streak(profile.activeDays)}d`} />
-        <Stat label="Longest streak" value={`${streak(profile.activeDays)}d`} />
-        <Stat label="Active days" value={String(profile.activeDays.length)} />
+      <p className="lede">Progress, the streak, and where to pick up next. {profile.goal || "Set a learning goal in settings."}</p>
+      <div className="dash-stats">
+        <div className="dash-stat"><b>{done}</b><span>Completed</span></div>
+        <div className="dash-stat"><b>{streak(profile.activeDays)}d</b><span>Current streak</span></div>
+        <div className="dash-stat"><b>{streak(profile.activeDays)}d</b><span>Longest streak</span></div>
+        <div className="dash-stat"><b>{profile.activeDays.length}</b><span>Active days</span></div>
       </div>
-      <div className="grid-2" style={{ marginTop: 16 }}>
+      <div className="grid-2">
         {courses.map((course) => {
           const list = lessons.filter((lesson) => lesson.course.id === course.id);
           const count = list.filter((lesson) => profile.understood.includes(`${course.id}:${lesson.slug}`)).length;
           const next = list.find((lesson) => !profile.understood.includes(`${course.id}:${lesson.slug}`)) ?? list[0];
           return (
             <article key={course.id} className="card">
+              <span className="htag">Continue</span>
               <h3>{course.name}</h3>
               <p>{count}/{list.length}</p>
-              <div className="meter"><span style={{ width: `${(count / list.length) * 100}%` }} /></div>
+              <div className="dash-bar"><i style={{ width: `${(count / list.length) * 100}%` }} /></div>
               <p>Next: {next.title}</p>
-              <Link className="btn" href={`${course.path}/archive/${next.slug}/`}>Start</Link>
+              <Link className="hbtn mint sm" href={`${course.path}/archive/${next.slug}/`}>Continue</Link>
             </article>
           );
         })}
         <article className="card">
+          <span className="htag">Papers</span>
           <h3>Paper reading order</h3>
           <p>{profile.papersRead.length}/{papers.length}</p>
-          <Link className="btn" href="/papers/">Continue</Link>
+          <Link className="hbtn sm" href="/papers/">Continue</Link>
         </article>
       </div>
-      <section className="section">
-        <h2 style={{ fontSize: 32 }}>Activity</h2>
+      <section>
+        <p className="htag">Activity</p>
         <div className="heat" aria-label="Active days">{heatmap.map((on, index) => <i key={index} data-on={on} />)}</div>
       </section>
-      <section className="section grid-2">
+      <section className="grid-2">
         <div className="card">
           <h3>Saved for later</h3>
-          {profile.saved.length === 0 ? <p>Nothing saved yet. Use the bookmark on a lesson or a paper.</p> : profile.saved.map((id) => <p key={id}>{labelFor(id)}</p>)}
+          {profile.saved.length === 0 ? <div className="empty"><h3>Nothing saved yet</h3><p>Use Save on a lesson and it will wait here.</p></div> : profile.saved.map((id) => <p key={id}>{labelFor(id)}</p>)}
           <Link href="/papers/">Browse the papers</Link>
         </div>
         <div className="card">
           <h3>Completed</h3>
-          {done === 0 ? <p>Nothing completed yet. Open a lesson and mark it understood.</p> : profile.understood.slice(0, 8).map((id) => <p key={id}>{labelFor(id)}</p>)}
+          {done === 0 ? <div className="empty"><h3>Nothing completed yet</h3><p>Open a lesson and mark it understood.</p></div> : profile.understood.slice(0, 8).map((id) => <p key={id}>{labelFor(id)}</p>)}
           <Link href="/python-ai/overview/">Start a lesson</Link>
         </div>
       </section>
-    </>
+    </div>
   );
 }
 
@@ -211,10 +213,11 @@ export function SettingsPage() {
     });
   }
   return (
-    <>
+    <div className="sheet">
+      <p className="htag">Account</p>
       <h1>Settings</h1>
       <p>Your profile, preferences, plan, and data. Stored in this browser only.</p>
-      <div className="chips" style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+      <div className="settings-tabs">
         {["profile", "preferences", "plan", "security", "data"].map((item) => (
           <button key={item} type="button" data-on={tab === item} onClick={() => setTab(item)}>{item}</button>
         ))}
@@ -292,7 +295,7 @@ export function SettingsPage() {
           <DeleteBox enabled={confirm === "delete"} />
         </div>
       )}
-    </>
+    </div>
   );
 }
 
@@ -359,11 +362,11 @@ export function HirePage() {
   if (!store.ready) return <p>Loading…</p>;
   if (!store.profile) {
     return (
-      <>
+      <div className="empty">
         <h1>A profile built on how you build</h1>
         <p className="lede">Hiring teams on the reference product are matched to work you have done. This build keeps a profile on this browser and does not share it.</p>
-        <Link className="btn" href="/signup/">Create an account</Link>
-      </>
+        <Link className="hbtn mint" href="/signup/">Create an account</Link>
+      </div>
     );
   }
   const hire = store.profile.hire;
@@ -556,11 +559,12 @@ export function NotFoundPage() {
 
 function Gate({ title, body }: { title: string; body: string }) {
   return (
-    <div className="card">
+    <div className="empty">
+      <p className="htag">Account</p>
       <h1>{title}</h1>
       <p>{body}</p>
       <div className="row">
-        <Link className="btn" href="/login/">Sign in</Link>
+        <Link className="hbtn mint" href="/login/">Sign in</Link>
         <Link className="btn ghost" href="/signup/">Create an account</Link>
       </div>
     </div>

@@ -5,17 +5,32 @@ import { useState } from "react";
 import { Figure } from "@/components/Marks";
 import { courses, faqs, stats } from "@/lib/catalog";
 
-const tracks = [
-  ["Build AI backends in Python", "FastAPI, streaming, agents, MCP and tracing, with one support-agent project carried through 86 lessons.", "/python-ai/overview/"],
-  ["Serve models fast", "Batching, KV cache, quantisation and the arithmetic of a token budget.", "/inference-eng/overview/"],
-  ["Design systems that scale", "Queues, caches, sharding, and the design questions that show up in senior interviews.", "/system/overview/"],
-  ["Watch a lesson", "A short video, then the same figures written down, then a check you can answer.", "/python-ai/archive/what-an-ai-backend-is/"],
+const skyCards = [
+  ["theme-python", "flow", "Build AI backends in Python", "FastAPI, streaming, agents, MCP and tracing, with one support-agent project carried through 86 lessons.", "Open the course →", "/python-ai/overview/"],
+  ["theme-inference", "gpu", "Serve models fast", "Batching, KV cache, quantisation and the arithmetic of a token budget, measured on real hardware.", "Open the course →", "/inference-eng/overview/"],
+  ["theme-system", "queue", "Design systems that scale", "Queues, caches, sharding, and the design questions reported from interviews at Amazon, Google and Stripe.", "Open the course →", "/system/overview/"],
+  ["theme-watch", "bars", "Watch a lesson", "A short original video, the same idea in the notes, and a check you answer yourself.", "Open the lesson →", "/python-ai/archive/what-an-ai-backend-is/"],
+] as const;
+
+const paths = [
+  { id: "python-ai", theme: "theme-python", kind: "flow" as const, points: ["Python 3.14, FastAPI, Pydantic", "Agents SDK, LangGraph, MCP", "Langfuse tracing and deployment"] },
+  { id: "system", theme: "theme-system", kind: "queue" as const, points: ["Notes and case studies", "From-scratch implementations", "Built for senior interviews"] },
+  { id: "inference-eng", theme: "theme-inference", kind: "gpu" as const, points: ["GPUs, KV cache and batching math", "Quantization, speculation, parallelism", "Autoscaling and production serving"] },
 ];
+
+const spots = [
+  ["One figure", "One idea, drawn once", "Every lesson is built around a single drawing. The notes use the same figure the video moves.", "flow"],
+  ["One lesson", "Three ways through the same thing", "A short video, the written version, and a try-it that adds one piece to the project you are carrying.", "ways"],
+  ["Reading order", "36 papers, in sequence", "Landmark papers ordered so each one prepares you for the next, with a question to keep while you read.", "papers"],
+  ["One a day", "A brief every morning", "Ten focused minutes on one paper. Mark it read and the calendar fills in behind you.", "days"],
+  ["Your dashboard", "Everything you finish, counted", "Mark a lesson understood and it lands here with the date, the streak, and the next lesson.", "dash"],
+  ["Interactive", "Change a number, watch it react", "Move one control — a cache size, a fan-out, a timeout — and watch the latency answer.", "lab"],
+] as const;
 
 const beyond = [
   ["01", "Interactive tools", "Labs", "Change a number, watch the system react", "/labs/"],
   ["02", "One paper a day", "Daily", "A short brief every morning", "/daily/"],
-  ["03", "Draw it", "Whiteboard", "Talk through a figure, one step at a time", "/board/"],
+  ["03", "Not in this copy", "Course assistant", "Lessons still include a video, notes, and a check you answer yourself.", "/assistant/"],
   ["04", "Curated shelf", "Resources", "Docs, books and talks", "/system/resources/"],
   ["05", "Get hired", "Hire me", "A profile built on how you build with AI", "/hire-me/"],
   ["06", "Reading order", "Papers", "Landmark papers, in sequence", "/papers/"],
@@ -27,168 +42,255 @@ export function Home() {
   const [open, setOpen] = useState(0);
   return (
     <>
-      <section className="hero-grid">
-        <div>
-          <div className="board-preview" aria-hidden="true">
-            <Figure kind="loop" />
+      <div className="hframe">
+        <section className="hsec tease">
+          <div className="tease-grid">
+            <div className="tease-film" aria-hidden="true">
+              <div className="board-top"><span>Whiteboard</span><span>Relay</span></div>
+              <div className="board-paper">
+                <p>One request, one token.</p>
+                <Figure kind="flow" />
+                <p className="board-note">Tokens drip back in at a steady rate.</p>
+              </div>
+            </div>
+            <div className="tease-copy">
+              <p className="livenow"><i /> Live now</p>
+              <h2>Whiteboard is live on Skillmaxing.</h2>
+              <p>A session that draws the figure as it explains. This build does it in the browser.</p>
+              <div className="tease-acts">
+                <Link className="hbtn mint" href="/board/">Try the whiteboard</Link>
+              </div>
+              <p className="tease-note">Comes with Lifetime: 60 minutes of lessons every month. Here, a lifetime plan meters 60 local sessions.</p>
+            </div>
           </div>
-          <p className="kicker"><span className="live-dot" /> Live now</p>
-          <h2>Whiteboard is live on Skillmaxing.</h2>
-          <p>Your tutor can talk through a figure. This build draws it in the browser.</p>
-          <Link className="skew mint" href="/board/"><span>Try the whiteboard</span></Link>
-          <p className="muted">Lifetime on the reference includes 60 minutes a month. Here, a lifetime plan meters 60 local sessions.</p>
-        </div>
-        <div>
-          <Link className="banner" href="/agent-harness/">
-            <span><span className="kicker">New course</span> <strong>Agent harness</strong> — the loop, tools, sandboxes, evals. Coming soon.</span>
-            <span>Read more →</span>
-          </Link>
-          <p className="kicker">Python with AI · Inference Engineering · System Design</p>
-          <h1>See how agents work. Then build it.</h1>
-          <p className="lede">Narrated-style notes and written figures for building AI backends in Python and designing systems that scale, with one project running through every course.</p>
-          <div className="row">
-            <Link className="skew" href="/python-ai/archive/what-an-ai-backend-is/"><span>Start learning free</span></Link>
-            <Link className="btn ghost" href="/python-ai/archive/what-an-ai-backend-is/">Watch a lesson</Link>
-          </div>
-        </div>
-      </section>
+        </section>
+      </div>
 
-      <section className="section grid-4">
-        {tracks.map(([title, body, href]) => (
-          <Link key={title} className="card" href={href}>
-            <h3>{title}</h3>
-            <p className="muted">{body}</p>
-            <strong>Open →</strong>
-          </Link>
-        ))}
-      </section>
-
-      <section className="section grid-4">
-        <div className="stat"><b>{stats.lessons}</b><span className="kicker">Lessons</span></div>
-        <div className="stat"><b>{stats.modules}</b><span className="kicker">Modules</span></div>
-        <div className="stat"><b>{stats.walks}</b><span className="kicker">Walkthroughs</span></div>
-        <div className="stat"><b>{stats.free}</b><span className="kicker">Free, start to finish</span></div>
-      </section>
-
-      <section className="section" id="course-directory">
-        <p className="kicker">Courses</p>
-        <h2>Three tracks, one account</h2>
-        <p className="lede">All three are written the same way and share one account. The free lessons are complete lessons, not previews.</p>
-        <div className="grid-3" style={{ marginTop: 16 }}>
-          {courses.map((course) => {
-            const count = course.modules.reduce((sum, mod) => sum + mod.lessons.length, 0);
-            return (
-              <Link key={course.id} className="card path-card" href={`${course.path}/overview/`}>
-                <span className="kicker">{course.eyebrow}</span>
-                <h3>{course.name}</h3>
-                <p>{course.lede}</p>
-                <span className="kicker">{course.modules.length} modules · {count} lessons · 5 free</span>
-                <strong>Open course →</strong>
-              </Link>
-            );
-          })}
-        </div>
-        <Link className="card soon" href="/agent-harness/" style={{ display: "block", marginTop: 14 }}>
-          <span className="kicker">Coming soon · Agents path</span>
-          <h3>Agent harness</h3>
-          <p>The loop, sandboxes, permissions, evals, and shipping. Get told on launch day.</p>
+      <div className="hframe">
+        <Link className="soon-bar" href="/agent-harness/">
+          <span className="htag">New course</span>
+          <span className="soon-bar-text"><b>Agent harness</b> build agents that survive production: the loop, tools, sandboxes, evals. Coming soon; every account is told on launch day.</span>
+          <span className="soon-bar-go">Read more →</span>
         </Link>
-      </section>
+      </div>
 
-      <section className="section steps">
-        <div>
-          <p className="kicker">Inside every lesson</p>
-          <h2>Every lesson is made three ways</h2>
-          <p>The watch script, the notes and the exercise use the same drawing.</p>
-          <ol>
-            <li><h3>Watch</h3><p>A short script, with the diagram moving as the explanation moves.</p></li>
-            <li><h3>Read</h3><p>The same figure in writing, numbered and honest about what breaks.</p></li>
-            <li><h3>Build</h3><p>A try-it that asks for one working piece.</p></li>
-          </ol>
+      <div className="hframe">
+        <section className="sky">
+          <div className="sky-head">
+            <p className="htag">Python with AI · Inference Engineering · System Design</p>
+            <h1>See how agents work. Then build it.</h1>
+            <p className="hlede">Narrated, animated lessons and written notes for building AI backends in Python and designing systems that scale, with one real project running through every course.</p>
+            <div className="hacts">
+              <Link className="hbtn lime" href="/python-ai/archive/what-an-ai-backend-is/">Start learning free</Link>
+              <Link className="hbtn light" href="/python-ai/archive/what-an-ai-backend-is/">Watch a lesson</Link>
+            </div>
+          </div>
+          <div className="sky-cards">
+            {skyCards.map(([theme, kind, title, body, go, href]) => (
+              <Link key={title} className={`sky-card ${theme}`} href={href}>
+                <figure><Figure kind={kind} /></figure>
+                <h3>{title}</h3>
+                <p>{body}</p>
+                <span className="go">{go}</span>
+              </Link>
+            ))}
+          </div>
+        </section>
+      </div>
+
+      <div className="hframe">
+        <div className="rail" aria-label="Course totals">
+          <div className="axis">
+            <div className="m"><s /><div className="v">{stats.lessons}</div><div className="k">Lessons</div></div>
+            <div className="m"><s /><div className="v">{stats.lessons}</div><div className="k">Lesson videos</div></div>
+            <div className="m"><s /><div className="v">{stats.modules}</div><div className="k">Modules</div></div>
+            <div className="m free"><s /><div className="v">{stats.free}</div><div className="k">Free, start to finish</div></div>
+          </div>
         </div>
-        <div className="card">
-          <Figure kind="loop" />
-          <pre className="code">{`def answer(ticket_id, message):
+      </div>
+
+      <div className="ticker rev" aria-hidden="true">
+        <div className="ticker-track">
+          {Array.from({ length: 2 }).map((_, copy) => (
+            <span key={copy}>{Array.from({ length: 8 }).map((__, i) => <span key={i}>WATCH · READ · BUILD · TRACE · SHIP ·&nbsp;&nbsp;</span>)}</span>
+          ))}
+        </div>
+      </div>
+
+      <div className="hframe">
+        <section className="hsec paths" id="course-directory">
+          <p className="htag">Courses</p>
+          <h2>Three tracks, one account</h2>
+          <p className="h2sub">All three are written the same way and share one account. The free lessons are complete lessons, not previews.</p>
+          <div className="cc-grid">
+            {paths.map((path) => {
+              const course = courses.find((item) => item.id === path.id)!;
+              const count = course.modules.reduce((sum, mod) => sum + mod.lessons.length, 0);
+              return (
+                <Link key={path.id} className={`cc-card ${path.theme}`} href={`${course.path}/overview/`}>
+                  <figure className="cc-art"><Figure kind={path.kind} /></figure>
+                  <div className="cc-body">
+                    <span className="htag">{course.eyebrow}</span>
+                    <h3>{course.name}</h3>
+                    <ul>{path.points.map((point) => <li key={point}>{point}</li>)}</ul>
+                    <div className="cc-meta">{course.modules.length} modules · {count} lessons · 5 free</div>
+                    <div className="cc-go">Open course →</div>
+                  </div>
+                </Link>
+              );
+            })}
+            <Link className="cc-card theme-harness soon" href="/agent-harness/">
+              <figure className="cc-art"><Figure kind="loop" /></figure>
+              <div className="cc-body">
+                <span className="htag">Coming soon · Agents path</span>
+                <h3>Agent harness</h3>
+                <ul>
+                  <li>The loop: planner, tools, memory, stop rules</li>
+                  <li>Sandboxes, permissions and human approval</li>
+                  <li>Evals, traces and shipping to production</li>
+                </ul>
+                <div className="cc-meta">Coming soon</div>
+                <div className="cc-go">Get told on launch day →</div>
+              </div>
+            </Link>
+          </div>
+        </section>
+      </div>
+
+      <div className="ruler"><b>Watch · Read · Build</b></div>
+      <div className="band">
+        <div className="hframe">
+          <section className="hsec">
+            <p className="htag">Watch · Read · Build</p>
+            <h2>Every lesson is made three ways</h2>
+            <p className="h2sub">The video, the notes and the exercise use the same drawing, so nothing is lost moving between them.</p>
+            <div className="bandgrid">
+              <ol className="steps">
+                <li><span className="n">01</span><div><h3>Watch</h3><p>A short video, with the diagram changing as the explanation moves.</p></div></li>
+                <li><span className="n">02</span><div><h3>Read</h3><p>The same figures in writing, numbered and captioned, honest about what breaks.</p></div></li>
+                <li><span className="n">03</span><div><h3>Build</h3><p>A try-it that adds one working piece to the project you are carrying.</p></div></li>
+              </ol>
+              <pre className="band-code">{`def answer(ticket_id, message):
     history = load_history(ticket_id)
     reply = call_model(history)
     return reply`}</pre>
+            </div>
+          </section>
         </div>
-      </section>
+      </div>
 
-      <section className="section">
-        <p className="kicker">Inside Skillmaxing</p>
-        <h2>What an account actually gets you</h2>
-        <div className="feature-mosaic" style={{ marginTop: 16 }}>
-          <article className="card">
-            <Figure kind="flow" />
-            <h3>One idea, drawn once</h3>
-            <p>Every lesson is built around a single drawing, shared by the watch script and the notes.</p>
-          </article>
-          <div className="mosaic-side">
-            <article className="card"><Figure kind="bars" /><h3>36 papers, in sequence</h3><p>Each brief prepares the next paper, with a question to carry into the reading.</p></article>
-            <article className="card"><Figure kind="cache" /><h3>Change a number, watch it react</h3><p>Move a cache size, a fan-out, or a timeout and read the latency that comes back.</p></article>
+      <div className="hframe">
+        <section className="hsec spots">
+          <p className="htag">Inside Skillmaxing</p>
+          <h2>What an account actually gets you</h2>
+          <p className="h2sub">Six things you use every week, drawn the way they actually work.</p>
+          <div className="spot-grid">
+            {spots.map(([kicker, title, body, art]) => (
+              <article key={title} className="spot-card">
+                <div className="spot-art">{spotArt(art)}</div>
+                <div className="spot-copy">
+                  <span className="htag">{kicker}</span>
+                  <h3>{title}</h3>
+                  <p>{body}</p>
+                </div>
+              </article>
+            ))}
           </div>
-        </div>
-      </section>
+        </section>
+      </div>
 
-      <section className="section">
-        <p className="kicker">Beyond the courses</p>
-        <h2>More ways to learn on skillmaxing.</h2>
-        <div className="grid-4" style={{ marginTop: 16 }}>
-          {beyond.map(([n, kicker, title, body, href]) => (
-            <Link key={n} className="card" href={href}>
-              <span className="kicker">{n} {kicker}</span>
-              <h3>{title}</h3>
-              <p className="muted">{body}</p>
-            </Link>
-          ))}
-        </div>
-      </section>
+      <div className="hframe">
+        <section className="hsec beyond">
+          <p className="htag">Beyond the courses</p>
+          <h2>More ways to learn on skillmaxing.</h2>
+          <div className="more">
+            <div className="more-grid">
+              {beyond.map(([n, kicker, title, body, href]) => (
+                <Link key={n} className="more-card" href={href}>
+                  <span className="idx">{n}</span>
+                  <span className="htag">{kicker}</span>
+                  <h3>{title}</h3>
+                  <p>{body}</p>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      </div>
 
-      <section className="section">
-        <div className="row" style={{ justifyContent: "space-between" }}>
+      <div className="hframe">
+        <section className="hsec plans">
+          <div className="plans-head">
+            <div>
+              <p className="htag">Plans</p>
+              <h2>One account, every course</h2>
+            </div>
+            <Link href="/pricing/">View full pricing</Link>
+          </div>
+          <div className="plans-stats">
+            <div>Every course on every plan</div>
+            <div>No checkout on this copy</div>
+            <div>Prices listed before tax</div>
+          </div>
+          <div className="plans-grid">
+            <Plan name="Monthly" price="$29" unit="/month" note="$29 a month" body="Every current course with the shortest commitment." cta="Choose Monthly" />
+            <Plan name="Annual" price="$16.58" unit="/month" note="$199 a year" body="The same full access, paid once a year." cta="Choose Annual" />
+            <Plan name="Lifetime" price="$299" unit="paid once" note="One payment, no renewal" body="All current tracks and every update. This copy does not take payment." cta="See lifetime offer" lifetime />
+          </div>
+        </section>
+      </div>
+
+      <div className="hframe">
+        <section className="faq-sec">
           <div>
-            <p className="kicker">Plans</p>
-            <h2>One account, every course</h2>
+            <p className="htag">FAQ</p>
+            <h2>Questions people ask before joining.</h2>
+            <p>Everything worth knowing before you pick a path. If it is not here, ask and it will be added.</p>
           </div>
-          <Link href="/pricing/">View full pricing</Link>
-        </div>
-        <div className="grid-3" style={{ marginTop: 16 }}>
-          <Plan name="Monthly" price="$29" unit="/month" body="Every current course, listed here for reference. This copy does not take payment." href="/pricing/" />
-          <Plan name="Annual" price="$16.58" unit="/month" body="$199 a year on the original. Lessons in this copy are already open." href="/pricing/" />
-          <Plan name="Lifetime" price="$299" unit="paid once" body="Shown so the plans match. There is no checkout on this site." href="/pricing/" />
-        </div>
-      </section>
+          <div className="faq">
+            {faqs.map(([question, answer], index) => (
+              <details key={question} open={open === index} onToggle={(event) => { if ((event.target as HTMLDetailsElement).open) setOpen(index); }}>
+                <summary>{question}</summary>
+                <p className="faq-a">{answer}</p>
+              </details>
+            ))}
+          </div>
+        </section>
+      </div>
 
-      <section className="section faq">
-        <h2>Questions people ask before joining.</h2>
-        <div style={{ display: "grid", gap: 8, marginTop: 16 }}>
-          {faqs.map(([q, a], index) => (
-            <details key={q} open={open === index} onToggle={(event) => { if ((event.target as HTMLDetailsElement).open) setOpen(index); }}>
-              <summary>{q}</summary>
-              <p>{a}</p>
-            </details>
-          ))}
+      <div className="hframe">
+        <div className="hprice">
+          <div>
+            <p className="htag">Start free</p>
+            <div className="amt"><i>$29</i> for the first month</div>
+            <p className="then">Then $29 a month, every course included. Cancel from your billing portal.</p>
+            <p className="also">Or $299 once, for everything published now and later. Prices are before tax. This copy does not charge a card.</p>
+          </div>
+          <Link className="hbtn mint" href="/pricing/">See pricing</Link>
         </div>
-      </section>
-
-      <section className="section card">
-        <p className="kicker">Start free</p>
-        <h2>$29 for the first month</h2>
-        <p>Then $29 a month, every course included. Or $299 once. Checkout here is a local plan switch: no card is charged.</p>
-        <Link className="skew" href="/pricing/"><span>See pricing</span></Link>
-      </section>
+      </div>
     </>
   );
 }
 
-function Plan({ name, price, unit, body, href }: { name: string; price: string; unit: string; body: string; href: string }) {
+function Plan({ name, price, unit, note, body, cta, lifetime }: { name: string; price: string; unit: string; note: string; body: string; cta: string; lifetime?: boolean }) {
   return (
-    <article className="card">
-      <span className="kicker">{name}</span>
+    <article className={lifetime ? "plan-card lifetime" : "plan-card"}>
+      {lifetime && <span className="plan-badge">Best value</span>}
+      <span className="plan-name">{name}</span>
       <div className="price">{price} <small>{unit}</small></div>
+      <p>{note}</p>
       <p>{body}</p>
-      <Link className="btn ghost" href={href}>Listed on pricing</Link>
+      <Link className="plan-cta" href="/pricing/">{cta}</Link>
     </article>
   );
+}
+
+function spotArt(kind: string) {
+  if (kind === "ways") return <div className="mini-ways"><span>Read</span><span>Watch</span><span>Build</span></div>;
+  if (kind === "papers") return <div className="mini-ways"><span>02</span><span>03</span><span>04</span></div>;
+  if (kind === "days") return <div className="mini-days">{"MTWTFSS".split("").map((day) => <span key={day}>{day}</span>)}</div>;
+  if (kind === "dash") return <div className="mini-meter" aria-hidden="true"><i /></div>;
+  if (kind === "lab") return <Figure kind="cache" />;
+  return <Figure kind="flow" />;
 }

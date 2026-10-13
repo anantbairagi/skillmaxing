@@ -653,7 +653,7 @@ const faqs = [
   ["What is actually inside Python with AI?", "Python through FastAPI, Pydantic, streaming, agents, MCP and tracing. One support-agent project is carried through the path."],
   ["What is actually inside System Design?", "Notes, case files, and from-scratch implementations: requests, storage, caches, queues, search, realtime, and the interview shapes those ideas show up in."],
   ["Is this only for interview prep?", "System Design is useful in an interview because it is useful on the job. The other two tracks are about building and serving, not about a whiteboard ritual."],
-  ["What is the course assistant?", "A study assistant that answers from the lesson titles and notes in this build, draws a small figure, and can quiz you. On the reference product it is backed by a hosted model. Here it runs locally in your browser."],
+  ["What is the course assistant?", "It is not part of this copy. Each lesson still has its own video, the notes, and a check you answer yourself."],
   ["How often does the material change?", "Lessons are revised when the underlying tools change. This study build snapshots the path structure and writes original notes, so it will not track upstream edits automatically."],
 ];
 
